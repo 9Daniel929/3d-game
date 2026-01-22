@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>iPad 3D Game</title>
+<style>
+body { margin:0; overflow:hidden; background:black; touch-action:none; }
+#menu {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:black; color:white; font-family:Arial;
+}
+button { padding:14px; font-size:18px; }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <h1>3D Arena</h1>
+  <button onclick="start()">Play</button>
+  <p>Touch + drag to move</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+let scene, camera, renderer, player;
+let touchX = 0, touchY = 0;
+
+function start() {
+  document.getElementById("menu").remove();
+  init();
+  animate();
+}
+
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(50,50),
+    new THREE.MeshStandardMaterial({ color:0x333333 })
+  );
+  floor.rotation.x = -Math.PI/2;
+  scene.add(floor);
+
+  player = new THREE.Mesh(
+    new THREE.BoxGeometry(1,2,1),
+    new THREE.MeshStandardMaterial({ color:0x00ffff })
+  );
+  player.position.y = 1;
+  scene.add(player);
+
+  camera.position.set(0,5,10);
+  camera.lookAt(player.position);
+
+  renderer.domElement.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dx = t.clientX - touchX;
+    const dy = t.clientY - touchY;
+    player.position.x += dx * 0.01;
+    player.position.z += dy * 0.01;
+    touchX = t.clientX;
+    touchY = t.clientY;
+  });
+
+  renderer.domElement.addEventListener("touchstart", e => {
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+  });
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  camera.lookAt(player.position);
+  renderer.render(scene, camera);
+}
+</script>
+
+</body>
+</html>
