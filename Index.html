@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background: black;
+  font-family: Arial;
+}
+
+#play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: black;
+  color: white;
+  font-size: 28px;
+}
+button {
+  padding: 16px 32px;
+  font-size: 20px;
+}
+</style>
+</head>
+<body>
+
+<div id="play">
+  <button onclick="startGame()">PLAY</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+let scene, camera, renderer, player;
+let touchX = 0, touchY = 0;
+
+function startGame() {
+  document.getElementById("play").remove();
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x111111);
+
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+  // Floor
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshStandardMaterial({ color: 0x333333 })
+  );
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
+
+  // Player
+  player = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 2, 1),
+    new THREE.MeshStandardMaterial({ color: 0x00ffff })
+  );
+  player.position.y = 1;
+  scene.add(player);
+
+  camera.position.set(0, 6, 10);
+
+  renderer.domElement.addEventListener("touchstart", e => {
+    touchX = e.touches[0].clientX;
+    touchY = e.touches[0].clientY;
+  });
+
+  renderer.domElement.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    const dx = t.clientX - touchX;
+    const dy = t.clientY - touchY;
+    player.position.x += dx * 0.01;
+    player.position.z += dy * 0.01;
+    touchX = t.clientX;
+    touchY = t.clientY;
+  });
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  camera.lookAt(player.position);
+  renderer.render(scene, camera);
+}
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
